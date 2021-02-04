@@ -27,13 +27,13 @@ public class ShoppingPatterns {
             }
             List<Integer> path = new ArrayList<>();
             path.add(i);
-            dfs(i, path, graph, visitedEdge, res, node);
+            dfs(i, path, graph, visitedEdge, res);
         }
         return res[0];
     }
 
     private void dfs(int curNode, List<Integer> nodes, Map<Integer, Set<Integer>> graph,
-            Map<Integer, Set<Integer>> visitedEdge, int[] res, int node) {
+            Map<Integer, Set<Integer>> visitedEdge, int[] res) {
         if (nodes.size() > 3) {
             int lastIndex = nodes.size() - 1;
             if (nodes.get(lastIndex) == nodes.get(lastIndex - 3)) {
@@ -49,7 +49,7 @@ public class ShoppingPatterns {
             }
             addEdge(visitedEdge, curNode, neighbor);
             nodes.add(neighbor);
-            dfs(neighbor, nodes, graph, visitedEdge, res, node);
+            dfs(neighbor, nodes, graph, visitedEdge, res);
             nodes.remove(nodes.size() - 1);
         }
     }
