@@ -23,7 +23,7 @@ public class ShoppingPatterns {
 
         for (int i = 1; i <= node; i++) {
             if (visitedEdge.get(i).size() == graph.get(i).size()) {
-                break;
+                continue;
             }
             List<Integer> path = new ArrayList<>();
             path.add(i);
