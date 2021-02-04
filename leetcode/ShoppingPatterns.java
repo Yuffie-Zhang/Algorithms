@@ -10,59 +10,63 @@ import org.junit.Test;
 
 public class ShoppingPatterns {
     public int findTrioScore(int node, int edge, int[] productsFrom, int[] productsTo) {
-        Map<Integer, Set<Integer>> graph = new HashMap<>(); // store node and all its larger linked nodes
-        Map<Integer, Set<Integer>> oppositegraph = new HashMap<>();
+        Map<Integer, Set<Integer>> graph = new HashMap<>();
+        for (int i = 1; i <= node; i++) {
+            graph.put(i, new HashSet<>());
+        }
         for (int i = 0; i < productsFrom.length; i++) {
-            if (productsFrom[i] > productsTo[i]) {
-                swap(productsFrom[i], productsTo[i]);
-            }
             addEdge(graph, productsFrom[i], productsTo[i]);
-            addEdge(oppositegraph, productsTo[i], productsFrom[i]);
+            addEdge(graph, productsTo[i], productsFrom[i]);
         }
 
         int[] res = { node };
+        HashSet<Integer> visitedEdge = new HashSet<>();
         for (int i = 1; i <= node; i++) {
-            List<Integer> nodes = new ArrayList<>();
-            nodes.add(i);
-            dfs(graph.get(i), i, nodes, graph, oppositegraph, res);
+            if (visitedEdge.size() == edge) {
+                break;
+            }
+            List<Integer> path = new ArrayList<>();
+            path.add(i);
+            dfs(i, path, graph, visitedEdge, res, node);
         }
         return res[0];
     }
 
-    private void dfs(Set<Integer> baseNeighbors, int curNode, List<Integer> nodes, Map<Integer, Set<Integer>> graph,
-            Map<Integer, Set<Integer>> oppositegraph, int[] res) {
-        if (nodes.size() == 3) {
-            if (baseNeighbors.contains(nodes.get(2))) {
-                int score = calculateTrioScore(nodes, graph, oppositegraph);
+    private void dfs(int curNode, List<Integer> nodes, Map<Integer, Set<Integer>> graph, HashSet<Integer> visitedEdge,
+            int[] res, int node) {
+        if (nodes.size() > 3) {
+            int lastIndex = nodes.size() - 1;
+            if (nodes.get(lastIndex) == nodes.get(lastIndex - 3)) {
+                int score = calculateTrioScore(nodes.get(lastIndex), nodes.get(lastIndex - 1), nodes.get(lastIndex - 2),
+                        graph);
                 res[0] = Math.min(res[0], score);
-            }
-            return;
-        }
-        Set<Integer> neighbors = graph.get(curNode);
-        if (neighbors != null) {
-            for (int neighbor : neighbors) {
-                nodes.add(neighbor);
-                dfs(baseNeighbors, neighbor, nodes, graph, oppositegraph, res);
-                nodes.remove(nodes.size() - 1);
+                return;
             }
         }
-
+        for (int neighbor : graph.get(curNode)) {
+            int edgeVal = calculateEdgeValue(curNode, neighbor, node);
+            if (visitedEdge.contains(edgeVal)) {
+                continue;
+            }
+            visitedEdge.add(edgeVal);
+            nodes.add(neighbor);
+            dfs(neighbor, nodes, graph, visitedEdge, res, node);
+            nodes.remove(nodes.size() - 1);
+        }
     }
 
-    private int calculateTrioScore(List<Integer> nodes, Map<Integer, Set<Integer>> graph,
-            Map<Integer, Set<Integer>> oppositegraph) {
+    private int calculateEdgeValue(int x, int y, int total) {
+        int small = x < y ? x : y;
+        int large = x < y ? y : x;
+        return small * total + large;
+    }
+
+    private int calculateTrioScore(int x, int y, int z, Map<Integer, Set<Integer>> graph) {
         Set<Integer> products = new HashSet<>();
-        for (int node : nodes) {
-            products.addAll(graph.get(node));
-            products.addAll(oppositegraph.get(node));
-        }
+        products.addAll(graph.get(x));
+        products.addAll(graph.get(y));
+        products.addAll(graph.get(z));
         return products.size() - 3; // minus nodes themselves
-    }
-
-    private void swap(int large, int small) {
-        int tmp = large;
-        large = small;
-        small = tmp;
     }
 
     private void addEdge(Map<Integer, Set<Integer>> graph, int from, int to) {
