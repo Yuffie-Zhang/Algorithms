@@ -11,18 +11,18 @@ import org.junit.Test;
 public class ShoppingPatterns {
     public int findTrioScore(int node, int edge, int[] productsFrom, int[] productsTo) {
         Map<Integer, Set<Integer>> graph = new HashMap<>();
-        for (int i = 1; i <= node; i++) {
-            graph.put(i, new HashSet<>());
-        }
+        Map<Integer, Set<Integer>> visitedEdge = new HashMap<>();
+        initializeGraph(graph, node);
+        initializeGraph(visitedEdge, node);
+
         for (int i = 0; i < productsFrom.length; i++) {
             addEdge(graph, productsFrom[i], productsTo[i]);
-            addEdge(graph, productsTo[i], productsFrom[i]);
         }
 
         int[] res = { node };
-        HashSet<Integer> visitedEdge = new HashSet<>();
+
         for (int i = 1; i <= node; i++) {
-            if (visitedEdge.size() == edge) {
+            if (visitedEdge.get(i).size() == graph.get(i).size()) {
                 break;
             }
             List<Integer> path = new ArrayList<>();
@@ -32,8 +32,8 @@ public class ShoppingPatterns {
         return res[0];
     }
 
-    private void dfs(int curNode, List<Integer> nodes, Map<Integer, Set<Integer>> graph, HashSet<Integer> visitedEdge,
-            int[] res, int node) {
+    private void dfs(int curNode, List<Integer> nodes, Map<Integer, Set<Integer>> graph,
+            Map<Integer, Set<Integer>> visitedEdge, int[] res, int node) {
         if (nodes.size() > 3) {
             int lastIndex = nodes.size() - 1;
             if (nodes.get(lastIndex) == nodes.get(lastIndex - 3)) {
@@ -44,21 +44,14 @@ public class ShoppingPatterns {
             }
         }
         for (int neighbor : graph.get(curNode)) {
-            int edgeVal = calculateEdgeValue(curNode, neighbor, node);
-            if (visitedEdge.contains(edgeVal)) {
+            if (visitedEdge.get(curNode).contains(neighbor)) {
                 continue;
             }
-            visitedEdge.add(edgeVal);
+            addEdge(visitedEdge, curNode, neighbor);
             nodes.add(neighbor);
             dfs(neighbor, nodes, graph, visitedEdge, res, node);
             nodes.remove(nodes.size() - 1);
         }
-    }
-
-    private int calculateEdgeValue(int x, int y, int total) {
-        int small = x < y ? x : y;
-        int large = x < y ? y : x;
-        return small * total + large;
     }
 
     private int calculateTrioScore(int x, int y, int z, Map<Integer, Set<Integer>> graph) {
@@ -70,10 +63,14 @@ public class ShoppingPatterns {
     }
 
     private void addEdge(Map<Integer, Set<Integer>> graph, int from, int to) {
-        if (!graph.containsKey(from)) {
-            graph.put(from, new HashSet<>());
-        }
         graph.get(from).add(to);
+        graph.get(to).add(from);
+    }
+
+    private void initializeGraph(Map<Integer, Set<Integer>> graph, int node) {
+        for (int i = 1; i <= node; i++) {
+            graph.put(i, new HashSet<>());
+        }
     }
 
     @Test
